@@ -70,7 +70,7 @@ BlackjackProject/
 │               ├── logic/
 │               │   └── BlackjackGameTest.java
 │               └── model/
-│                   ├── Dealer.java
+│                   ├── DealerTest.java
 │                   ├── CardTest.java
 │                   ├── DeckTest.java
 │                   └── PlayerTest.java
