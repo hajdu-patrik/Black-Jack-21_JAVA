@@ -9,7 +9,7 @@ import static org.junit.jupiter.api.Assertions.*;
 /**
  * Tests the core game flow logic and winner determination.
  */
-class BlackjackGameTest {
+public class BlackjackGameTest {
 
     /**
      * Tests the game state at initialization.
@@ -19,9 +19,15 @@ class BlackjackGameTest {
         BlackjackGame game = new BlackjackGame("Gamer", 1);
         
         assertEquals(4, game.getPlayer().getHand().size() + game.getDealer().getHand().size(), "Four cards must be dealt initially.");
-        assertTrue(game.isPlayerTurn(), "The game should start with the player's turn.");
-        assertFalse(game.isGameOver(), "The game should not be over initially.");
         assertEquals(1, game.getNumberOfDecks(), "The number of decks should be 1.");
+
+        if (game.getPlayer().getScore() == 21) {
+            assertFalse(game.isPlayerTurn(), "If player is dealt a Blackjack (21), turn should pass automatically.");
+        } else {
+            assertTrue(game.isPlayerTurn(), "The game should start with the player's turn (if score < 21).");
+        }
+
+        assertFalse(game.isGameOver(), "The game should not be over initially (unless dealer also has blackjack, but logic handles round start).");
     }
     
     /**
@@ -40,6 +46,7 @@ class BlackjackGameTest {
         
         if (game.getPlayer().getScore() > 21) {
             assertTrue(game.isGameOver(), "Game should be over if player busts.");
+
             assertTrue(game.getGameResult().contains("You lost (You went over:"), "Player bust result message is incorrect.");
         }
     }
@@ -65,6 +72,7 @@ class BlackjackGameTest {
         
         if (game.getDealer().getScore() > 21) {
             assertTrue(game.isGameOver(), "Game should be over after stand.");
+            
             assertTrue(game.getGameResult().contains("You won (Dealer went over:"), "Player should win if dealer busts.");
         }
     }
