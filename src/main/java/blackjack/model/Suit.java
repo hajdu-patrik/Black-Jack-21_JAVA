@@ -1,12 +1,9 @@
 package blackjack.model;
 
-import java.io.Serializable;
-
 /**
  * Represents the suit of a playing card.
- * Implements Serializable for game saving functionality.
  */
-public enum Suit implements Serializable{
+public enum Suit{
     HEARTS("Hearts"),
     DIAMONDS("Diamonds"),
     CLUBS("Clubs"),

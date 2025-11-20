@@ -77,4 +77,12 @@ public class Deck implements Serializable {
         }
         return cards.remove(0); // The top card is simply removed from the list
     }
+
+    /**
+     * Returns the current number of cards remaining in the deck.
+     * @return The count of cards.
+     */
+    public int getCardCount() {
+        return cards.size();
+    }
 }

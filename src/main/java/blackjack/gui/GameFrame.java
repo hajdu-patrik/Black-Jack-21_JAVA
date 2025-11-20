@@ -4,19 +4,26 @@ import blackjack.logic.BlackjackGame;
 import blackjack.io.SaveManager;
 import blackjack.model.Card;
 import blackjack.model.Player;
+import blackjack.logic.RoundResult;
 
 import javax.swing.*;
 import java.awt.*;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * The Swing-based graphical user interface (View) for the Blackjack game.
  * It handles displaying the game state, user input (Hit/Stand), and menu actions (Save/Load/New Game).
  */
 public class GameFrame extends JFrame {
+    // The main game logic/model
     private BlackjackGame game;
+
+    // Logger for debugging and error messages
+    private static final Logger LOGGER = Logger.getLogger(GameFrame.class.getName());
     
     // UI components
     private JPanel dealerPanel;
@@ -27,15 +34,23 @@ public class GameFrame extends JFrame {
     private JButton hitButton;
     private JButton standButton;
 
-    // Optional menu item for enabling/disabling load action
-    private JMenuItem loadItem; 
+    // Constants for repeated strings
+    private static final String DECK_SIZE_TITLE = "Deck Size";
+    private static final String ERROR_TITLE = "Error";
+    private static final String GAME_OVER_TITLE = "Game Over";
+    private static final String DEFAULT_PLAYER_NAME = "Player";
 
     /**
      * Constructs the main game window. Prompts the user for a player name and initializes the UI.
      */
     public GameFrame() {
-        createNewGame();    
+        // We initialize UI first so the main frame exists (even if invisible) as a parent
         initUI();
+        
+        // Now we show the setup dialogs ON TOP of everything
+        createNewGame();
+        
+        // Finally update the UI with the new game data
         updateUI();
     }
 
@@ -49,6 +64,9 @@ public class GameFrame extends JFrame {
         setMinimumSize(new Dimension(600, 400));
         setLocationRelativeTo(null);
         setLayout(new BorderLayout(10, 10));
+
+        // --- Icon setup ---
+        loadApplicationIcon();
 
         // --- Menu ---
         JMenuBar menuBar = createMenuBar();
@@ -70,9 +88,9 @@ public class GameFrame extends JFrame {
 
         // Player Panel (Bottom)
         playerPanel = new JPanel();
-        playerPanel.setBorder(BorderFactory.createTitledBorder(game.getPlayer().getName() + " Cards"));
+        playerPanel.setBorder(BorderFactory.createTitledBorder("Player Cards"));
         playerPanel.setBackground(new Color(20, 100, 50));
-        playerScoreLabel = new JLabel(game.getPlayer().getName() + " score: 0");
+        playerScoreLabel = new JLabel("Score: 0");
         playerScoreLabel.setForeground(Color.WHITE);
         playerScoreLabel.setFont(new Font("Arial", Font.BOLD, 18));
         playerPanel.add(playerScoreLabel);
@@ -95,36 +113,81 @@ public class GameFrame extends JFrame {
         controlPanel.add(hitButton);
         controlPanel.add(standButton);
         add(controlPanel, BorderLayout.SOUTH);
-        add(statusLabel, BorderLayout.NORTH); // Status label at the top
-
-        // Update to initial state
-        updateUI();
+        add(statusLabel, BorderLayout.NORTH);
     }
 
     /**
-     * Creates a new game instance by prompting the user for necessary parameters.
+     * Loads the application icon from resources.
+     */
+    private void loadApplicationIcon() {
+        try {
+            java.net.URL iconURL = getClass().getResource("/icon.png");
+            if (iconURL != null) {
+                ImageIcon icon = new ImageIcon(iconURL);
+                setIconImage(icon.getImage());
+                setTaskbarIcon(icon.getImage());
+            }
+        } catch (Exception e) {
+            LOGGER.log(Level.WARNING, "Error loading icon: {0}", e.getMessage());
+        }
+    }
+
+    /**
+     * Sets the taskbar icon if supported by the OS (e.g., macOS).
+     * @param image The image to set.
+     */
+    private void setTaskbarIcon(Image image) {
+        if (Taskbar.isTaskbarSupported()) {
+            try {
+                Taskbar.getTaskbar().setIconImage(image);
+            } catch (UnsupportedOperationException e) {
+                // System tray not supported on this platform, ignore quietly
+                LOGGER.log(Level.FINE, "Taskbar icon not supported: {0}", e.getMessage());
+            } catch (SecurityException e) {
+                LOGGER.log(Level.WARNING, "Security exception setting taskbar icon: {0}", e.getMessage());
+            }
+        }
+    }
+
+    /**
+     * Creates a new game instance using custom JDialogs to ensure they appear Always-On-Top.
      */
     private void createNewGame() {
-        // 1. Player Name
-        String playerName = JOptionPane.showInputDialog(this, 
-            "Please enter your name!", "Player Name", JOptionPane. PLAIN_MESSAGE);
+        // 1. Player Name Input with Always-On-Top
+        JOptionPane namePane = new JOptionPane("Please enter your name!", JOptionPane.PLAIN_MESSAGE, JOptionPane.DEFAULT_OPTION, null, null, null);
+        namePane.setWantsInput(true);
+        namePane.setInitialSelectionValue(DEFAULT_PLAYER_NAME);
         
-        if (playerName == null || playerName.trim().isEmpty()) {
-            playerName = "Player";
-        }
+        JDialog nameDialog = namePane.createDialog(this, "Player Name");
+        nameDialog.setAlwaysOnTop(true); // CRITICAL: Forces dialog to top
+        nameDialog.setVisible(true);
+        nameDialog.dispose();
         
-        // 2. Number of Decks (1 or 2)
+        Object nameInput = namePane.getInputValue();
+        String playerName = (nameInput != null && nameInput != JOptionPane.UNINITIALIZED_VALUE) ? (String) nameInput : DEFAULT_PLAYER_NAME;
+        if (playerName.trim().isEmpty()) playerName = DEFAULT_PLAYER_NAME;
+
+        // 2. Deck Size Selection with Always-On-Top
         Object[] options = {"1 deck", "2 decks"};
-        int n = JOptionPane.showOptionDialog(this,
-            "How many decks would you like to play with?",
-            "Game settings",
-            JOptionPane.YES_NO_OPTION,
-            JOptionPane.QUESTION_MESSAGE,
-            null,
-            options,
-            options[0]);
+        JOptionPane deckPane = new JOptionPane(
+            "How many decks would you like to play with?", 
+            JOptionPane.QUESTION_MESSAGE, 
+            JOptionPane.YES_NO_OPTION, 
+            null, 
+            options, 
+            options[0]
+        );
         
-        int deckCount = (n == 1) ? 2 : 1; // n=0 means "1 deck", n=1 means "2 decks"
+        JDialog deckDialog = deckPane.createDialog(this, "Game settings");
+        deckDialog.setAlwaysOnTop(true); // CRITICAL: Forces dialog to top
+        deckDialog.setVisible(true);
+        deckDialog.dispose();
+
+        Object selectedValue = deckPane.getValue();
+        int deckCount = 1;
+        if (selectedValue != null && selectedValue.equals(options[1])) {
+            deckCount = 2;
+        }
         
         this.game = new BlackjackGame(playerName, deckCount);
     }
@@ -136,25 +199,25 @@ public class GameFrame extends JFrame {
     private JMenuBar createMenuBar() {
         JMenuBar menuBar = new JMenuBar();
         JMenu gameMenu = new JMenu("Menu");
+        JMenu statsMenu = new JMenu("Statistics");
         
         JMenuItem newItem = new JMenuItem("New Game");
-        JMenuItem deckSizeItem = new JMenuItem("Deck Size");
+        JMenuItem deckSizeItem = new JMenuItem(DECK_SIZE_TITLE);
         JMenuItem saveItem = new JMenuItem("Save");
-        loadItem = new JMenuItem("Load");
+        JMenuItem loadItem = new JMenuItem("Load");
         JMenuItem exitItem = new JMenuItem("Exit");
+        JMenuItem statsItem = new JMenuItem("Last (max 10) rounds statistics");
         
         // Event handling for menu items
-        newItem.addActionListener(e -> {
-            SwingUtilities.invokeLater(() -> {
-                game.startNewRound();
-                updateUI(); 
-            });
-        });
+        newItem.addActionListener(e -> SwingUtilities.invokeLater(() -> {
+            game.startNewRound();
+            updateUI(); 
+        }));
 
+        statsItem.addActionListener(e -> showStatistics());
         deckSizeItem.addActionListener(e -> selectDeckSize());
         saveItem.addActionListener(e -> saveGame());
         loadItem.addActionListener(e -> loadGame());
-        
         exitItem.addActionListener(e -> System.exit(0));
 
         gameMenu.add(newItem);
@@ -166,6 +229,9 @@ public class GameFrame extends JFrame {
         gameMenu.add(exitItem);
         menuBar.add(gameMenu);
         
+        statsMenu.add(statsItem);
+        menuBar.add(statsMenu);
+
         return menuBar;
     }
 
@@ -178,7 +244,7 @@ public class GameFrame extends JFrame {
         updateUI();
         
         if (game.isGameOver()) {
-            JOptionPane.showMessageDialog(this, game.getGameResult(), "Game Over", JOptionPane.INFORMATION_MESSAGE);
+            showAlwaysOnTopMessage(game.getGameResult(), GAME_OVER_TITLE, JOptionPane.INFORMATION_MESSAGE);
             setControls(false); // Disable buttons
         }
     }
@@ -191,14 +257,30 @@ public class GameFrame extends JFrame {
         game.playerStand();
         updateUI();
         
-        JOptionPane.showMessageDialog(this, game.getGameResult(), "Game Over", JOptionPane.INFORMATION_MESSAGE);
+        JOptionPane.showMessageDialog(this, game.getGameResult(), GAME_OVER_TITLE, JOptionPane.INFORMATION_MESSAGE);
         setControls(false); // Disable buttons
+    }
+
+    /**
+     * Displays a message dialog that is always on top of other windows.
+     * @param message The message to display.
+     * @param title The title of the dialog.
+     * @param messageType The type of message (e.g., INFORMATION_MESSAGE).
+     */
+    private void showAlwaysOnTopMessage(String message, String title, int messageType) {
+        JOptionPane pane = new JOptionPane(message, messageType);
+        JDialog dialog = pane.createDialog(this, title);
+        dialog.setAlwaysOnTop(true);
+        dialog.setVisible(true);
+        dialog.dispose();
     }
     
     /**
      * Updates the entire GUI state (cards, scores, controls) based on the current BlackjackGame model.
      */
     private void updateUI() {
+        if(game == null) return;
+
         // Update Player and Dealer hands
         // Dealer's second card is hidden until the game is over
         displayHand(dealerPanel, game.getDealer(), !game.isPlayerTurn() || game.isGameOver());
@@ -226,21 +308,27 @@ public class GameFrame extends JFrame {
      * @param showAll If true, all cards are shown; otherwise, only the first card is visible (for the Dealer).
      */
     private void displayHand(JPanel panel, Player player, boolean showAll) {
-        panel.removeAll(); // Clear previous cards
-        panel.setLayout(new FlowLayout(FlowLayout.CENTER, 5, 5)); // Set FlowLayout for card placement
+        panel.removeAll();
+        panel.setLayout(new FlowLayout(FlowLayout.CENTER, 5, 5));
 
         List<Card> hand = player.getHand();
-        int cardsToShow = showAll ? hand.size() : (hand.isEmpty() ? 0 : 1);
-        
+        int cardsToShow;
+        if (showAll) {
+            cardsToShow = hand.size();
+        } else if (hand.isEmpty()) {
+            cardsToShow = 0;
+        } else {
+            cardsToShow = 1;
+        }
+
         for (int i = 0; i < hand.size(); i++) {
             Card card = hand.get(i);
             String cardText = (i < cardsToShow || showAll) ? card.toString() : "Back";
             
             JLabel cardLabel = new JLabel(cardText, SwingConstants.CENTER);
-            cardLabel.setPreferredSize(new Dimension(80, 110)); // Card size
+            cardLabel.setPreferredSize(new Dimension(80, 110));
             cardLabel.setOpaque(true);
             
-            // Style: Red for Hearts/Diamonds, Black for Clubs/Spades
             Color textColor = (card.getSuit() == blackjack.model.Suit.HEARTS || card.getSuit() == blackjack.model.Suit.DIAMONDS) ? Color.RED : Color.BLACK;
 
             if (i < cardsToShow || showAll) {
@@ -249,8 +337,7 @@ public class GameFrame extends JFrame {
                 cardLabel.setBorder(BorderFactory.createLineBorder(Color.GRAY, 2));
                 cardLabel.setFont(new Font("Monospaced", Font.BOLD, 16));
             } else {
-                // Simulate card back
-                cardLabel.setBackground(new Color(0, 51, 153)); // Darker Blue
+                cardLabel.setBackground(new Color(0, 51, 153));
                 cardLabel.setForeground(Color.YELLOW);
                 cardLabel.setBorder(BorderFactory.createLineBorder(Color.YELLOW, 2));
                 cardLabel.setFont(new Font("Monospaced", Font.BOLD, 12));
@@ -272,8 +359,18 @@ public class GameFrame extends JFrame {
         // Player's score is always shown
         playerScoreLabel.setText(game.getPlayer().getName() + " score: " + game.getPlayer().getScore());
         
-        // Update general status
-        statusLabel.setText("Game status: " + (game.isGameOver() ? game.getGameResult() : (game.isPlayerTurn() ? "Your turn!" : "Dealer's turn!")));
+        // Update status message
+        statusLabel.setText("Game status: " + getStatusMessage());
+    }
+
+    /**
+     * Generates a status message based on the current game state.
+     * @return A string representing the current status of the game.
+     */
+    private String getStatusMessage() {
+        if (game.isGameOver())
+            return game.getGameResult();
+        return game.isPlayerTurn() ? "Your turn!" : "Dealer's turn!";
     }
     
     /**
@@ -286,24 +383,58 @@ public class GameFrame extends JFrame {
     }
 
     /**
+     * Checks if the history contains at least 3 rounds and displays the statistics window (JList).
+     * Otherwise, shows a warning message.
+     */
+    private void showStatistics() {
+        List<RoundResult> history = game.getResultsHistory();
+        if (history.size() < 3) {
+            showAlwaysOnTopMessage(
+                "At least 3 rounds are required to view statistics. Current number of rounds: " + history.size(),
+                "Missing Data",
+                JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        
+        // JList-et tartalmazó új ablak létrehozása
+        StatisticsFrame statsFrame = new StatisticsFrame(this, history);
+        statsFrame.setAlwaysOnTop(true);
+        statsFrame.setVisible(true);
+    }
+
+    /**
      * The user to select the number of decks (1 or 2) and updates the game model accordingly.
      * Restarts the current round with the new deck size.
      */
     private void selectDeckSize() {
         Object[] options = {"1 deck", "2 decks"};
-        int current = Math.max(1, Math.min(2, game.getNumberOfDecks()));
+        int current = Math.clamp(game.getNumberOfDecks(), 1, 2);
         int defaultIndex = (current == 2) ? 1 : 0;
 
-        int choice = JOptionPane.showOptionDialog(this, "Select number of decks (current: " + current + "):", "Deck Size", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, options[defaultIndex] );
+        JOptionPane pane = new JOptionPane(
+            "Select number of decks (current: " + current + "):",
+            JOptionPane.QUESTION_MESSAGE,
+            JOptionPane.YES_NO_OPTION,
+            null,
+            options,
+            options[defaultIndex]
+        );
+        
+        JDialog dialog = pane.createDialog(this, DECK_SIZE_TITLE);
+        dialog.setAlwaysOnTop(true);
+        dialog.setVisible(true);
+        dialog.dispose();
+        
+        Object selectedValue = pane.getValue();
+        if (selectedValue == null) return;
 
-        if (choice == JOptionPane.CLOSED_OPTION)
-            return;
+        int selectedDecks = selectedValue.equals(options[1]) ? 2 : 1;
+        game.setNumberOfDecks(selectedDecks);
 
-        int selectedDecks = (choice == 1) ? 2 : 1;
         // Apply the change to the game model
         game.setNumberOfDecks(selectedDecks);
 
-        JOptionPane.showMessageDialog(this, "Deck size set to " + selectedDecks + " deck(s).", "Deck Size", JOptionPane.INFORMATION_MESSAGE);
+        showAlwaysOnTopMessage("Deck size set to " + selectedDecks + " deck(s).", DECK_SIZE_TITLE, JOptionPane.INFORMATION_MESSAGE);
         game.startNewRound();
         updateUI();
     }
@@ -315,9 +446,9 @@ public class GameFrame extends JFrame {
         try {
             SaveManager.saveGame(game);
             // Using File().getAbsolutePath() to show the user where the file was saved
-            JOptionPane.showMessageDialog(this, "Game state saved to: " + new File("saves/gamestate.dat").getAbsolutePath(), "Save successful", JOptionPane.INFORMATION_MESSAGE);
+            showAlwaysOnTopMessage("Game state saved to: " + new File("saves/gamestate.dat").getAbsolutePath(), "Save successful", JOptionPane.INFORMATION_MESSAGE);
         } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, "Error during saving: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            showAlwaysOnTopMessage("Error during saving: " + e.getMessage(), ERROR_TITLE, JOptionPane.ERROR_MESSAGE);
         }
     }
 
@@ -333,12 +464,12 @@ public class GameFrame extends JFrame {
             setTitle("Blackjack - 21 (" + game.getPlayer().getName() + ")");
             setControls(!game.isGameOver()); 
 
-            JOptionPane.showMessageDialog(this, "Game state loaded!", "Loading successful", JOptionPane.INFORMATION_MESSAGE);
+            showAlwaysOnTopMessage("Game state loaded!", "Loading successful", JOptionPane.INFORMATION_MESSAGE);
             updateUI();
         } catch (FileNotFoundException e) {
-            JOptionPane.showMessageDialog(this, "Saved file not found at 'saves/gamestate.dat'.","Error", JOptionPane.WARNING_MESSAGE);
+            showAlwaysOnTopMessage("Saved file not found at 'saves/gamestate.dat'.", ERROR_TITLE, JOptionPane.WARNING_MESSAGE);
         } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, "Error during loading: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            showAlwaysOnTopMessage("Error during loading: " + e.getMessage(), ERROR_TITLE, JOptionPane.ERROR_MESSAGE);
             e.printStackTrace();
         }
     }

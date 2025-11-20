@@ -7,8 +7,15 @@ import java.io.*;
  * Responsible for saving and loading the game state using Java Serialization (ObjectOutputStream / ObjectInputStream)
  */
 public class SaveManager {
-
     private static final String SAVE_FILE = "saves/gamestate.dat";
+
+    /**
+     * Private constructor to hide the implicit public one.
+     * Utility classes should not be instantiated.
+     */
+    private SaveManager() {
+        throw new IllegalStateException("Utility class");
+    }
 
     /**
      * Saves the current BlackjackGame object to a predefined file path ("saves/gamestate.dat").

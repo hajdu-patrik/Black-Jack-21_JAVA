@@ -3,7 +3,10 @@ package blackjack.logic;
 import blackjack.model.Deck;
 import blackjack.model.Player;
 import blackjack.model.Dealer;
+import blackjack.model.Card;
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * The main logic unit of the game, managing rounds, dealing, and determining the winner.
@@ -15,7 +18,11 @@ public class BlackjackGame implements Serializable {
     private Dealer dealer;
     private boolean isGameOver;
     private boolean isPlayerTurn;
-    private int numberOfDecks;
+    private int numberOfDecks; 
+    
+    // Collection for storing statistics
+    private final List<RoundResult> resultsHistory;
+    private static final int HISTORY_SIZE = 10;
 
     /**
      * Constructs a new Blackjack game with a default of 1 deck.
@@ -31,22 +38,24 @@ public class BlackjackGame implements Serializable {
      * @param numberOfDecks The number of decks to use (1 or 2).
      */
     public BlackjackGame(String playerName, int numberOfDecks) {
-        this.numberOfDecks = numberOfDecks;
+        this.numberOfDecks = numberOfDecks; 
         this.deck = new Deck(numberOfDecks);
         this.player = new Player(playerName);
         this.dealer = new Dealer();
-        this.isGameOver = true; 
+        this.isGameOver = true;
+        this.resultsHistory = new ArrayList<>();
         startNewRound();
     }
 
     /**
-     * Resets the game state: creates a new deck, clears hands, and deals initial cards.
+     * Resets the game state: creates a new deck (with the stored deck count), clears hands, and deals initial cards.
      * Automatically triggers playerStand if the player has an immediate Blackjack (score 21).
      */
     public void startNewRound() {
         isGameOver = false;
         isPlayerTurn = true;
         
+        // Always creates a new deck (or 2 decks) based on the number of decks.
         deck = new Deck(this.numberOfDecks); 
         player.clearHand();
         dealer.clearHand();
@@ -65,14 +74,16 @@ public class BlackjackGame implements Serializable {
 
     /**
      * Executes the player's "Hit" action: deals one card to the player.
-     * If the player's score exceeds 21, the game ends.
+     * If the player's score exceeds 21 (Bust), the game ends.
      */
     public void playerHit() {
         if (!isGameOver && isPlayerTurn) {
             player.addCard(deck.dealCard());
             if (player.getScore() > 21) {
-                isGameOver = true;
+                isGameOver = true; // Bust
                 isPlayerTurn = false;
+                // Game over, save the result
+                recordResult();
             }
         }
     }
@@ -85,13 +96,16 @@ public class BlackjackGame implements Serializable {
         if (!isGameOver && isPlayerTurn) {
             isPlayerTurn = false;
             
-            // Dealer's turn logic
+            // Dealer's turn logic (only runs if player hasn't busted)
             if (player.getScore() <= 21) {
                 while (dealer.shouldHit()) {
                     dealer.addCard(deck.dealCard());
                 }
             }
             isGameOver = true;
+            
+            // Game over, save the result
+            recordResult();
         }
     }
     
@@ -118,6 +132,36 @@ public class BlackjackGame implements Serializable {
             return "You lost!";
         
         return "Tie!";
+    }
+    
+    /**
+     * Collects and saves the final outcome of the round to the history list.
+     * The history is capped at 10 results.
+     */
+    private void recordResult() {
+        String winner;
+        int pScore = player.getScore();
+        int dScore = dealer.getScore();
+        
+        // Determine the winner (similar logic to getGameResult, but standardized)
+        if (pScore > 21) winner = "Dealer";
+        else if (dScore > 21) winner = player.getName();
+        else if (pScore > dScore) winner = player.getName();
+        else if (pScore < dScore) winner = "Dealer";
+        else winner = "Tie";
+        
+        // Convert card objects to string representation using Stream.toList()
+        List<String> pHand = player.getHand().stream().map(Card::toString).toList();
+        List<String> dHand = dealer.getHand().stream().map(Card::toString).toList();
+
+        RoundResult result = new RoundResult(winner, pScore, dScore, pHand, dHand);
+        
+        resultsHistory.add(0, result); // Add to the beginning of the list
+        
+        // Remove the oldest element if it exceeds HISTORY_SIZE
+        while (resultsHistory.size() > HISTORY_SIZE) {
+            resultsHistory.remove(resultsHistory.size() - 1);
+        }
     }
 
     /**
@@ -149,10 +193,16 @@ public class BlackjackGame implements Serializable {
      * @return The number of decks (1 or 2).
      */
     public int getNumberOfDecks() { return numberOfDecks; }
-
+    
     /**
      * Sets the number of decks to be used in the game.
-     * @param n The number of decks (1 or 2).
+     * @param numberOfDecks The desired number of decks (1 or 2).
      */
     public void setNumberOfDecks(int n) { this.numberOfDecks = n; }
+
+    /**
+     * Returns the history of the last 10 round results.
+     * @return A List of RoundResult objects.
+     */
+    public List<RoundResult> getResultsHistory() { return resultsHistory; }
 }

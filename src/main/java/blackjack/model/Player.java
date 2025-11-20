@@ -11,7 +11,7 @@ import java.util.List;
  */
 public class Player implements Serializable {
     private String name;
-    protected List<Card> hand;
+    private List<Card> hand;
 
     /**
      * Constructs a Player with the specified name.
