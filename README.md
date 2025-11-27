@@ -1,3 +1,10 @@
+![Java](https://img.shields.io/badge/Java-17%2B-ED8B00?style=flat&logo=openjdk&logoColor=white)
+![Swing](https://img.shields.io/badge/GUI-Java_Swing-E76F00?style=flat&logo=java&logoColor=white)
+![Gradle](https://img.shields.io/badge/Build-Gradle-02303A?style=flat&logo=gradle&logoColor=white)
+![JUnit 5](https://img.shields.io/badge/Test-JUnit_5-25A162?style=flat&logo=junit5&logoColor=white)
+![Architecture](https://img.shields.io/badge/Pattern-MVC-blue?style=flat)
+![OOP](https://img.shields.io/badge/Concept-OOP_%2F_SOLID-important?style=flat)
+![Status](https://img.shields.io/badge/Status-Educational-lightgrey?style=flat)
 # Blackjack Card Game (Java Swing)
 
 ## 📋 Project Overview
