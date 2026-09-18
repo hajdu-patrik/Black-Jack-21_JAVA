@@ -20,20 +20,20 @@ jobs:
         os: [ ubuntu-latest, windows-latest, macos-latest ]
 
     steps:
-    # 1. Download code (v4 is the correct version!)
+    # 1. Download code (v7 is the correct version!)
     - name: Checkout code
-      uses: actions/checkout@v4
+      uses: actions/checkout@v7
 
-    # 2. Set up Java environment (v4 is the correct version!)
-    - name: Set up JDK 21
-      uses: actions/setup-java@v4
+    # 2. Set up Java environment (v6 is the correct version!)
+    - name: Set up JDK 25
+      uses: actions/setup-java@v6
       with:
-        java-version: '21'
+        java-version: '25'
         distribution: 'temurin'
 
-    # 3. Set up Gradle (v4 is the correct version!)
+    # 3. Set up Gradle (v6 is the correct version!)
     - name: Setup Gradle
-      uses: gradle/actions/setup-gradle@v4
+      uses: gradle/actions/setup-gradle@v6
 
     # 4. Granting execution rights (Linux/Mac specific fix)
     - name: Make gradlew executable

@@ -1,4 +1,4 @@
-![Java](https://img.shields.io/badge/Java-17%2B-ED8B00?style=flat&logo=openjdk&logoColor=white)
+![Java](https://img.shields.io/badge/Java-25%2B-ED8B00?style=flat&logo=openjdk&logoColor=white)
 ![Swing](https://img.shields.io/badge/GUI-Java_Swing-E76F00?style=flat&logo=java&logoColor=white)
 ![Gradle](https://img.shields.io/badge/Build-Gradle-02303A?style=flat&logo=gradle&logoColor=white)
 ![JUnit 5](https://img.shields.io/badge/Test-JUnit_5-25A162?style=flat&logo=junit5&logoColor=white)
@@ -37,7 +37,7 @@ The application features a rich graphical user interface (GUI) built with **Java
 ---
 
 ## 🛠️ Technology Stack
-* **Language: Java (JDK 21 recommended, min. JDK 17)**
+* **Language: Java (JDK 25 recommended, min. JDK 25)**
 * **Build System: Gradle**
 * **GUI Framework: Java Swing**
 * **Testing: JUnit 5**
@@ -94,7 +94,7 @@ BlackjackProject/
 The project includes the Gradle Wrapper, ensuring a consistent build environment without manual Gradle installation.
 
 #### Prerequisites
-Java JDK 21 (or newer) installed and configured in JAVA_HOME.
+Java JDK 25 (or newer) installed and configured in JAVA_HOME.
 #### 1. Clone the Repository
 ```
 git clone repo-link
