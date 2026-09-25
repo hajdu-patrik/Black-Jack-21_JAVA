@@ -51,20 +51,23 @@ The application features a rich graphical user interface (GUI) built with **Java
 ## 📂 Project Structure
 The project follows the standard Gradle directory structure, with the source code divided into logical packages:
 ```
-BlackjackProject/
+Black-Jack-21_JAVA/
+├── build.gradle
+├── settings.gradle
+├── gradlew / gradlew.bat
 ├── src/
 │   ├── main/
 │   │   ├── java/
 │   │   │   └── blackjack/
 │   │   │       ├── Main.java
 │   │   │       ├── gui/
-│   │   │       |   |── GameFrame.java 
-│   │   │       |   └── StatisticsFrame.java
+│   │   │       │   ├── GameFrame.java
+│   │   │       │   └── StatisticsFrame.java
 │   │   │       ├── io/
 │   │   │       │   └── SaveManager.java
 │   │   │       ├── logic/
-│   │   │       |   |── BlackjackGame.java
-│   │   │       |   └── RoundResult.java
+│   │   │       │   ├── BlackjackGame.java
+│   │   │       │   └── RoundResult.java
 │   │   │       └── model/
 │   │   │           ├── Card.java
 │   │   │           ├── Dealer.java
@@ -82,13 +85,12 @@ BlackjackProject/
 │               ├── logic/
 │               │   └── BlackjackGameTest.java
 │               └── model/
-│                   ├── DealerTest.java
 │                   ├── CardTest.java
+│                   ├── DealerTest.java
 │                   ├── DeckTest.java
 │                   └── PlayerTest.java
-└── saves/
+└── saves/                  # created at runtime (git-ignored)
     └── gamestate.dat
-
 ```
 
 ---
