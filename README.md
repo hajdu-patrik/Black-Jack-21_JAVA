@@ -1,3 +1,5 @@
+# Blackjack Card Game (Java Swing)
+
 ![Java](https://img.shields.io/badge/Java-25%2B-ED8B00?style=flat&logo=openjdk&logoColor=white)
 ![Swing](https://img.shields.io/badge/GUI-Java_Swing-E76F00?style=flat&logo=java&logoColor=white)
 ![Gradle](https://img.shields.io/badge/Build-Gradle-02303A?style=flat&logo=gradle&logoColor=white)
@@ -5,8 +7,9 @@
 ![Architecture](https://img.shields.io/badge/Pattern-MVC-blue?style=flat)
 ![OOP](https://img.shields.io/badge/Concept-OOP_%2F_SOLID-important?style=flat)
 ![Status](https://img.shields.io/badge/Status-Educational-lightgrey?style=flat)
+![License](https://img.shields.io/badge/License-All_Rights_Reserved-red?style=flat)
 
-# Blackjack Card Game (Java Swing)
+---
 
 ## 📋 Project Overview
 
@@ -16,7 +19,7 @@ The application features a rich graphical user interface (GUI) built with **Java
 
 ---
 
-## 🚀 Key Features
+## ✨ Key Features
 ### 🎮 Gameplay Mechanics
 - **Dynamic Game Setup:** Players can customize their name and choose between 1 or 2 card decks for varied difficulty.
 - **Core Actions:** Standard Hit (draw card) and Stand (hold position) mechanics.
@@ -90,17 +93,18 @@ BlackjackProject/
 
 ---
 
-## 💻 Installation and Running
+## ⚙️ Setup & Usage
 The project includes the Gradle Wrapper, ensuring a consistent build environment without manual Gradle installation.
 
-#### Prerequisites
+### Prerequisites
 Java JDK 25 (or newer) installed and configured in JAVA_HOME.
-#### 1. Clone the Repository
+### 1. Clone the Repository
 ```
-git clone repo-link
+git clone https://github.com/hajdu-patrik/Black-Jack-21_JAVA.git
+cd Black-Jack-21_JAVA
 ```
 
-#### 2. Build the Project
+### 2. Build the Project
 **Windows:**
 ```
 gradlew build
@@ -111,7 +115,7 @@ gradlew build
 ./gradlew build
 ```
 
-#### 3. Run the game
+### 3. Run the game
 **Windows:**
 ```
 gradlew run
@@ -127,13 +131,13 @@ gradlew run
 ## 🧪 Testing Strategy
 The application maintains high test coverage using JUnit 5, focusing on business logic and edge cases.
 
-#### Key Test Cases:
+### Key Test Cases:
 - **Deck Integrity:** Verifying card counts for 1-deck (52 cards) and 2-deck (104 cards) modes.
 - **Ace Logic:** Testing flexible scoring (e.g., Ace + King = 21, Ace + 5 + 10 = 16).
 - **Game Flow:** Simulating Player Bust, Dealer Bust, and Win/Loss conditions.
 - **Persistence:** Verifying that saved and reloaded game states are identical.
 
-#### Run the test
+### Run the test
 **Windows:**
 ```
 gradlew test --info
@@ -141,7 +145,7 @@ gradlew test --info
 
 **Linux/Mac:**
 ```
-./gradlew test -info
+./gradlew test --info
 ```
 
 ---
@@ -151,3 +155,11 @@ gradlew test --info
 | Version | Description | Download |
 | :--- | :--- | :--- |
 | **v1.0.0** | **Blackjack - 21 v1.0.0** - Initial stable release. Includes the full Java Swing game with save/load functionality, statistics dashboard, and JUnit tests. | [Source code (zip)](https://github.com/hajdu-patrik/Black-Jack-21_JAVA/archive/refs/tags/v1.0.0.zip) |
+
+---
+
+## 📄 License
+
+Copyright (c) Hajdú Patrik Zsolt. All rights reserved.
+
+Published for demonstration and portfolio purposes only. Using any part of this code as a solution for an academic assignment is strictly prohibited. See [LICENSE.md](LICENSE.md) for the full terms.
